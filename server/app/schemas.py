@@ -108,11 +108,7 @@ class SchedulePayload(BaseModel):
         }
         for day in self.days:
             for entry in day.entries:
-                if (
-                    not entry.title and entry.id in override_subject_entry_ids
-                ):
-                    entry.title = "0"
-                elif not entry.title and not entry.subjectId:
+                if not entry.title and not entry.subjectId and entry.id not in override_subject_entry_ids:
                     entry.title = uuid4().hex
         return self
 

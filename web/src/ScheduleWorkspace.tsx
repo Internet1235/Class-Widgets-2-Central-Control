@@ -64,9 +64,7 @@ function normalizeSchedule(schedule: Schedule): Schedule {
       entries: day.entries.map((entry) => ({
         ...entry,
         subjectId: entry.subjectId?.trim() || undefined,
-        title: overrideSubjectEntryIds.has(entry.id)
-          ? entry.title?.trim() || '0'
-          : entry.title?.trim() || (entry.subjectId ? undefined : crypto.randomUUID()),
+        title: entry.title?.trim() || (entry.subjectId || overrideSubjectEntryIds.has(entry.id) ? undefined : crypto.randomUUID()),
       })),
     })),
     overrides: schedule.overrides ?? [],
