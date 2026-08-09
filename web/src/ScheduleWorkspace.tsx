@@ -10,7 +10,7 @@ import { api, type Group, type ScheduleRecord } from './api'
 
 type WeekSelector = 'all' | number | number[] | null
 type Subject = { id: string; name: string; simplifiedName?: string; teacher?: string; icon?: string; color?: string; location?: string; isLocalClassroom: boolean }
-type Entry = { id: string; type: 'class' | 'break' | 'activity' | 'free' | 'preparation'; startTime: string; endTime: string; subjectId?: string; title?: string }
+type Entry = { id: string; type: 'class' | 'break' | 'activity' | 'free'; startTime: string; endTime: string; subjectId?: string; title?: string }
 type Timeline = { id: string; entries: Entry[]; dayOfWeek?: number[]; weeks?: WeekSelector; date?: string }
 type Override = { id: string; entryId: string; dayOfWeek?: number[]; weeks?: WeekSelector; subjectId?: string; title?: string; startTime?: string; endTime?: string }
 type Schedule = { meta: { id: string; version: 1; maxWeekCycle: number; startDate: string }; subjects: Subject[]; days: Timeline[]; overrides: Override[] }
@@ -19,9 +19,26 @@ type Props = { organizationId: string; groups: Group[]; onComplete: (message: st
 
 const DAY_NAMES = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
 const DEFAULT_SUBJECTS: Subject[] = [
-  { id: crypto.randomUUID(), name: '语文', color: '#e05252', isLocalClassroom: true },
-  { id: crypto.randomUUID(), name: '数学', color: '#3978d4', isLocalClassroom: true },
-  { id: crypto.randomUUID(), name: '英语', color: '#7b61c9', isLocalClassroom: true },
+  { id: 'chinese', name: 'Chinese', simplifiedName: 'CHN', icon: 'ic_fluent_book_20_regular', color: '#FF5722', isLocalClassroom: true },
+  { id: 'math', name: 'Mathematics', simplifiedName: 'Math', icon: 'ic_fluent_ruler_20_regular', color: '#3F51B5', isLocalClassroom: true },
+  { id: 'english', name: 'English', simplifiedName: 'Eng', icon: 'ic_fluent_text_list_abc_uppercase_ltr_20_filled', color: '#2196F3', isLocalClassroom: true },
+  { id: 'politics', name: 'Politics', simplifiedName: 'Civics', icon: 'ic_fluent_book_globe_20_regular', color: '#9C27B0', isLocalClassroom: true },
+  { id: 'history', name: 'History', simplifiedName: 'Hist', icon: 'ic_fluent_clock_20_regular', color: '#795548', isLocalClassroom: true },
+  { id: 'physics', name: 'Physics', simplifiedName: 'Phys', icon: 'ic_fluent_lightbulb_filament_20_regular', color: '#00BCD4', isLocalClassroom: true },
+  { id: 'chemistry', name: 'Chemistry', simplifiedName: 'Chem', icon: 'ic_fluent_hexagon_three_20_regular', color: '#4CAF50', isLocalClassroom: true },
+  { id: 'biology', name: 'Biology', simplifiedName: 'Bio', icon: 'ic_fluent_leaf_three_20_regular', color: '#8BC34A', isLocalClassroom: true },
+  { id: 'geography', name: 'Geography', simplifiedName: 'Geo', icon: 'ic_fluent_earth_20_regular', color: '#009688', isLocalClassroom: true },
+  { id: 'music', name: 'Music', simplifiedName: 'Mus', icon: 'ic_fluent_music_note_2_20_regular', color: '#E91E63', isLocalClassroom: true },
+  { id: 'art', name: 'Art', simplifiedName: 'Art', icon: 'ic_fluent_draw_shape_20_regular', color: '#F44336', isLocalClassroom: true },
+  { id: 'psychology', name: 'Psychology', simplifiedName: 'Psy', icon: 'ic_fluent_brain_sparkle_20_regular', color: '#FF9800', isLocalClassroom: true },
+  { id: 'pe', name: 'Physical Education', simplifiedName: 'PE', icon: 'ic_fluent_person_running_20_regular', color: '#CDDC39', isLocalClassroom: false },
+  { id: 'it', name: 'Information Technology', simplifiedName: 'IT', icon: 'ic_fluent_laptop_20_regular', color: '#607D8B', isLocalClassroom: true },
+  { id: 'generaltech', name: 'General Technology', simplifiedName: 'GenTech', icon: 'ic_fluent_wrench_settings_20_regular', color: '#FF9800', isLocalClassroom: true },
+  { id: 'elective', name: 'Elective', simplifiedName: 'Elective', icon: 'ic_fluent_sign_out_20_regular', color: '#9E9E9E', isLocalClassroom: false },
+  { id: 'selfstudy', name: 'Self Study', simplifiedName: 'Study', icon: 'ic_fluent_notebook_20_regular', color: '#607D8B', isLocalClassroom: true },
+  { id: 'club', name: 'Club', simplifiedName: 'Club', icon: 'ic_fluent_people_team_20_regular', color: '#673AB7', isLocalClassroom: true },
+  { id: 'classmeeting', name: 'Class Meeting', simplifiedName: 'Meeting', icon: 'ic_fluent_chat_20_regular', color: '#3F51B5', isLocalClassroom: true },
+  { id: 'weeklytest', name: 'Weekly Test', simplifiedName: 'Test', icon: 'ic_fluent_clipboard_20_regular', color: '#FF5722', isLocalClassroom: true },
 ]
 
 function emptySchedule(): Schedule {
@@ -30,6 +47,18 @@ function emptySchedule(): Schedule {
     subjects: structuredClone(DEFAULT_SUBJECTS),
     days: [{ id: crypto.randomUUID(), dayOfWeek: [1, 2, 3, 4, 5], weeks: 'all', entries: [] }],
     overrides: [],
+  }
+}
+
+function normalizeSchedule(schedule: Schedule): Schedule {
+  return {
+    ...schedule,
+    subjects: schedule.subjects?.length ? schedule.subjects : structuredClone(DEFAULT_SUBJECTS),
+    days: (schedule.days ?? []).map((day) => ({
+      ...day,
+      entries: day.entries.map((entry) => ({ ...entry, title: entry.title?.trim() || crypto.randomUUID() })),
+    })),
+    overrides: schedule.overrides ?? [],
   }
 }
 
@@ -50,12 +79,12 @@ export function ScheduleWorkspace({ organizationId, groups, onComplete }: Props)
   useEffect(load, [organizationId])
 
   function reset() { setEditingId(null); setName('新课表'); setSchedule(emptySchedule()); setPublishGroups([]); setTab('timeline') }
-  function edit(record: ScheduleRecord) { setEditingId(record.id); setName(record.name); setSchedule(structuredClone(record.schedule) as unknown as Schedule); setPublishGroups(record.group_ids); setTab('timeline') }
+  function edit(record: ScheduleRecord) { setEditingId(record.id); setName(record.name); setSchedule(normalizeSchedule(structuredClone(record.schedule) as unknown as Schedule)); setPublishGroups(record.group_ids); setTab('timeline') }
   async function save() {
     try {
       const result = editingId
-        ? await api.updateSchedule(editingId, { name, schedule })
-        : await api.publishSchedule({ organization_id: organizationId, name, schedule, group_ids: [] })
+        ? await api.updateSchedule(editingId, { name: name.trim() || crypto.randomUUID(), schedule: normalizeSchedule(schedule) })
+        : await api.publishSchedule({ organization_id: organizationId, name: name.trim() || crypto.randomUUID(), schedule: normalizeSchedule(schedule), group_ids: [] })
       onComplete(`${editingId ? '新修订' : '课表草稿'} r${result.revision} 已保存`)
       setEditingId(result.id); load()
     } catch (error) { onComplete(error instanceof Error ? error.message : '保存失败', 'error') }
@@ -64,8 +93,8 @@ export function ScheduleWorkspace({ organizationId, groups, onComplete }: Props)
     if (!publishGroups.length) return
     try {
       const saved = editingId
-        ? await api.updateSchedule(editingId, { name, schedule })
-        : await api.publishSchedule({ organization_id: organizationId, name, schedule, group_ids: [] })
+        ? await api.updateSchedule(editingId, { name: name.trim() || crypto.randomUUID(), schedule: normalizeSchedule(schedule) })
+        : await api.publishSchedule({ organization_id: organizationId, name: name.trim() || crypto.randomUUID(), schedule: normalizeSchedule(schedule), group_ids: [] })
       await api.assignSchedule(saved.id, publishGroups)
       setEditingId(saved.id); onComplete(`课表 r${saved.revision} 已保存并发布`); load()
     } catch (error) { onComplete(error instanceof Error ? error.message : '发布失败', 'error') }
@@ -104,7 +133,7 @@ function TimelineEditor({ schedule, setSchedule }: { schedule: Schedule; setSche
   function addEntry() { if (!selected) return; updateDay({ ...selected, entries: [...selected.entries, { id: crypto.randomUUID(), type: 'class', startTime: '08:00', endTime: '08:40', subjectId: schedule.subjects[0]?.id }] }) }
   function updateEntry(id: string, patch: Partial<Entry>) { if (selected) updateDay({ ...selected, entries: selected.entries.map((entry) => entry.id === id ? { ...entry, ...patch } : entry).sort((a, b) => a.startTime.localeCompare(b.startTime)) }) }
   function removeEntry(id: string) { if (selected) { updateDay({ ...selected, entries: selected.entries.filter((entry) => entry.id !== id) }); setSchedule({ ...schedule, days: schedule.days.map((day) => day.id === selected.id ? { ...selected, entries: selected.entries.filter((entry) => entry.id !== id) } : day), overrides: schedule.overrides.filter((override) => override.entryId !== id) }) } }
-  return <div className="timeline-editor"><aside><div className="pane-heading"><strong>日程规则</strong><button onClick={addDay}><Add24Regular /></button></div>{schedule.days.map((day, index) => <button className={selected?.id === day.id ? 'selected' : ''} key={day.id} onClick={() => setSelectedId(day.id)}><strong>时间线 {index + 1}</strong><span>{day.date || day.dayOfWeek?.map((value) => DAY_NAMES[value - 1]).join('、') || '未指定日期'} · {day.weeks === 'all' ? '每周' : `循环第 ${String(day.weeks)} 周`}</span></button>)}</aside>{selected ? <div className="timeline-detail"><div className="pane-heading"><strong>时间线规则</strong><div><button onClick={cloneDay}><Copy24Regular />复制</button><button onClick={removeDay}><Delete24Regular />删除</button></div></div><div className="timeline-rule"><label>规则类型<select value={selected.date ? 'date' : 'week'} onChange={(event) => updateDay(event.target.value === 'date' ? { ...selected, date: new Date().toISOString().slice(0, 10), dayOfWeek: undefined, weeks: 'all' } : { ...selected, date: undefined, dayOfWeek: [1], weeks: 'all' })}><option value="week">按星期</option><option value="date">按日期</option></select></label>{selected.date ? <label>指定日期<input type="date" value={selected.date} onChange={(event) => updateDay({ ...selected, date: event.target.value })} /></label> : <><fieldset><legend>星期</legend><div className="day-pills">{DAY_NAMES.map((label, index) => <label key={label}><input type="checkbox" checked={selected.dayOfWeek?.includes(index + 1)} onChange={(event) => updateDay({ ...selected, dayOfWeek: event.target.checked ? [...(selected.dayOfWeek ?? []), index + 1] : selected.dayOfWeek?.filter((day) => day !== index + 1) })} />{label}</label>)}</div></fieldset><label>周循环<select value={selected.weeks === 'all' ? 'all' : typeof selected.weeks === 'number' ? String(selected.weeks) : 'custom'} onChange={(event) => updateDay({ ...selected, weeks: event.target.value === 'all' ? 'all' : Number(event.target.value) })}><option value="all">每周</option>{Array.from({ length: schedule.meta.maxWeekCycle }, (_, index) => <option key={index + 1} value={index + 1}>循环第 {index + 1} 周</option>)}</select></label></>}</div><div className="pane-heading"><strong>时间条目</strong><button onClick={addEntry}><Add24Regular />添加条目</button></div><div className="entry-cards">{selected.entries.map((entry) => <div className="timeline-entry" key={entry.id}><select value={entry.type} onChange={(event) => updateEntry(entry.id, { type: event.target.value as Entry['type'] })}><option value="class">课程</option><option value="break">课间</option><option value="activity">活动</option><option value="free">空闲</option><option value="preparation">预备</option></select><input type="time" value={entry.startTime} onChange={(event) => updateEntry(entry.id, { startTime: event.target.value })} /><span>至</span><input type="time" value={entry.endTime} onChange={(event) => updateEntry(entry.id, { endTime: event.target.value })} /><select value={entry.subjectId ?? ''} disabled={entry.type !== 'class'} onChange={(event) => updateEntry(entry.id, { subjectId: event.target.value || undefined })}><option value="">默认科目</option>{schedule.subjects.map((subject) => <option key={subject.id} value={subject.id}>{subject.name}</option>)}</select><input placeholder="自定义标题" value={entry.title ?? ''} onChange={(event) => updateEntry(entry.id, { title: event.target.value || undefined })} /><button onClick={() => removeEntry(entry.id)}><Delete24Regular /></button></div>)}</div></div> : <div className="empty-command">新建一个时间线开始编辑</div>}</div>
+  return <div className="timeline-editor"><aside><div className="pane-heading"><strong>日程规则</strong><button onClick={addDay}><Add24Regular /></button></div>{schedule.days.map((day, index) => <button className={selected?.id === day.id ? 'selected' : ''} key={day.id} onClick={() => setSelectedId(day.id)}><strong>时间线 {index + 1}</strong><span>{day.date || day.dayOfWeek?.map((value) => DAY_NAMES[value - 1]).join('、') || '未指定日期'} · {day.weeks === 'all' ? '每周' : `循环第 ${String(day.weeks)} 周`}</span></button>)}</aside>{selected ? <div className="timeline-detail"><div className="pane-heading"><strong>时间线规则</strong><div><button onClick={cloneDay}><Copy24Regular />复制</button><button onClick={removeDay}><Delete24Regular />删除</button></div></div><div className="timeline-rule"><label>规则类型<select value={selected.date ? 'date' : 'week'} onChange={(event) => updateDay(event.target.value === 'date' ? { ...selected, date: new Date().toISOString().slice(0, 10), dayOfWeek: undefined, weeks: 'all' } : { ...selected, date: undefined, dayOfWeek: [1], weeks: 'all' })}><option value="week">按星期</option><option value="date">按日期</option></select></label>{selected.date ? <label>指定日期<input type="date" value={selected.date} onChange={(event) => updateDay({ ...selected, date: event.target.value })} /></label> : <><fieldset><legend>星期</legend><div className="day-pills">{DAY_NAMES.map((label, index) => <label key={label}><input type="checkbox" checked={selected.dayOfWeek?.includes(index + 1)} onChange={(event) => updateDay({ ...selected, dayOfWeek: event.target.checked ? [...(selected.dayOfWeek ?? []), index + 1] : selected.dayOfWeek?.filter((day) => day !== index + 1) })} />{label}</label>)}</div></fieldset><label>周循环<select value={selected.weeks === 'all' ? 'all' : typeof selected.weeks === 'number' ? String(selected.weeks) : 'custom'} onChange={(event) => updateDay({ ...selected, weeks: event.target.value === 'all' ? 'all' : Number(event.target.value) })}><option value="all">每周</option>{Array.from({ length: schedule.meta.maxWeekCycle }, (_, index) => <option key={index + 1} value={index + 1}>循环第 {index + 1} 周</option>)}</select></label></>}</div><div className="pane-heading"><strong>时间条目</strong><button onClick={addEntry}><Add24Regular />添加条目</button></div><div className="entry-cards">{selected.entries.map((entry) => <div className="timeline-entry" key={entry.id}><select value={entry.type} onChange={(event) => updateEntry(entry.id, { type: event.target.value as Entry['type'] })}><option value="class">课程</option><option value="break">课间</option><option value="activity">活动</option><option value="free">空闲</option></select><input type="time" value={entry.startTime} onChange={(event) => updateEntry(entry.id, { startTime: event.target.value })} /><span>至</span><input type="time" value={entry.endTime} onChange={(event) => updateEntry(entry.id, { endTime: event.target.value })} /><select value={entry.subjectId ?? ''} disabled={entry.type !== 'class'} onChange={(event) => updateEntry(entry.id, { subjectId: event.target.value || undefined })}><option value="">未选择科目</option>{schedule.subjects.map((subject) => <option key={subject.id} value={subject.id}>{subject.name}</option>)}</select><input placeholder="自定义标题" value={entry.title ?? ''} onChange={(event) => updateEntry(entry.id, { title: event.target.value || undefined })} /><button onClick={() => removeEntry(entry.id)}><Delete24Regular /></button></div>)}</div></div> : <div className="empty-command">新建一个时间线开始编辑</div>}</div>
 }
 
 function WeeklyEditor({ schedule, setSchedule, week, setWeek }: { schedule: Schedule; setSchedule: (value: Schedule) => void; week: number; setWeek: (value: number) => void }) {

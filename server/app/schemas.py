@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from enum import StrEnum
 from typing import Annotated, Any, Literal
+from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -43,6 +44,8 @@ class EntryPayload(BaseModel):
             raise ValueError("endTime must be later than startTime")
         if self.type == EntryType.CLASS and not self.subjectId and not self.title:
             raise ValueError("class entries require subjectId or title")
+        if not self.title:
+            self.title = uuid4().hex
         return self
 
 
