@@ -40,12 +40,12 @@ class EntryPayload(BaseModel):
 
     @model_validator(mode="after")
     def validate_time_range(self) -> EntryPayload:
+        if self.subjectId == "":
+            self.subjectId = None
+        if self.title is not None and not self.title.strip():
+            self.title = None
         if self.endTime <= self.startTime:
             raise ValueError("endTime must be later than startTime")
-        if self.type == EntryType.CLASS and not self.subjectId and not self.title:
-            raise ValueError("class entries require subjectId or title")
-        if not self.title:
-            self.title = uuid4().hex
         return self
 
 
@@ -103,6 +103,17 @@ class SchedulePayload(BaseModel):
                 raise ValueError(f"unknown override entryId: {override.entryId}")
             if override.subjectId and override.subjectId not in known_subjects:
                 raise ValueError(f"unknown override subjectId: {override.subjectId}")
+        override_subject_entry_ids = {
+            override.entryId for override in self.overrides if override.subjectId
+        }
+        for day in self.days:
+            for entry in day.entries:
+                if (
+                    not entry.title and entry.id in override_subject_entry_ids
+                ):
+                    entry.title = "0"
+                elif not entry.title and not entry.subjectId:
+                    entry.title = uuid4().hex
         return self
 
 

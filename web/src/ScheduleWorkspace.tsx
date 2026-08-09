@@ -19,26 +19,26 @@ type Props = { organizationId: string; groups: Group[]; onComplete: (message: st
 
 const DAY_NAMES = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
 const DEFAULT_SUBJECTS: Subject[] = [
-  { id: 'chinese', name: 'Chinese', simplifiedName: 'CHN', icon: 'ic_fluent_book_20_regular', color: '#FF5722', isLocalClassroom: true },
-  { id: 'math', name: 'Mathematics', simplifiedName: 'Math', icon: 'ic_fluent_ruler_20_regular', color: '#3F51B5', isLocalClassroom: true },
-  { id: 'english', name: 'English', simplifiedName: 'Eng', icon: 'ic_fluent_text_list_abc_uppercase_ltr_20_filled', color: '#2196F3', isLocalClassroom: true },
-  { id: 'politics', name: 'Politics', simplifiedName: 'Civics', icon: 'ic_fluent_book_globe_20_regular', color: '#9C27B0', isLocalClassroom: true },
-  { id: 'history', name: 'History', simplifiedName: 'Hist', icon: 'ic_fluent_clock_20_regular', color: '#795548', isLocalClassroom: true },
-  { id: 'physics', name: 'Physics', simplifiedName: 'Phys', icon: 'ic_fluent_lightbulb_filament_20_regular', color: '#00BCD4', isLocalClassroom: true },
-  { id: 'chemistry', name: 'Chemistry', simplifiedName: 'Chem', icon: 'ic_fluent_hexagon_three_20_regular', color: '#4CAF50', isLocalClassroom: true },
-  { id: 'biology', name: 'Biology', simplifiedName: 'Bio', icon: 'ic_fluent_leaf_three_20_regular', color: '#8BC34A', isLocalClassroom: true },
-  { id: 'geography', name: 'Geography', simplifiedName: 'Geo', icon: 'ic_fluent_earth_20_regular', color: '#009688', isLocalClassroom: true },
-  { id: 'music', name: 'Music', simplifiedName: 'Mus', icon: 'ic_fluent_music_note_2_20_regular', color: '#E91E63', isLocalClassroom: true },
-  { id: 'art', name: 'Art', simplifiedName: 'Art', icon: 'ic_fluent_draw_shape_20_regular', color: '#F44336', isLocalClassroom: true },
-  { id: 'psychology', name: 'Psychology', simplifiedName: 'Psy', icon: 'ic_fluent_brain_sparkle_20_regular', color: '#FF9800', isLocalClassroom: true },
-  { id: 'pe', name: 'Physical Education', simplifiedName: 'PE', icon: 'ic_fluent_person_running_20_regular', color: '#CDDC39', isLocalClassroom: false },
-  { id: 'it', name: 'Information Technology', simplifiedName: 'IT', icon: 'ic_fluent_laptop_20_regular', color: '#607D8B', isLocalClassroom: true },
-  { id: 'generaltech', name: 'General Technology', simplifiedName: 'GenTech', icon: 'ic_fluent_wrench_settings_20_regular', color: '#FF9800', isLocalClassroom: true },
-  { id: 'elective', name: 'Elective', simplifiedName: 'Elective', icon: 'ic_fluent_sign_out_20_regular', color: '#9E9E9E', isLocalClassroom: false },
-  { id: 'selfstudy', name: 'Self Study', simplifiedName: 'Study', icon: 'ic_fluent_notebook_20_regular', color: '#607D8B', isLocalClassroom: true },
-  { id: 'club', name: 'Club', simplifiedName: 'Club', icon: 'ic_fluent_people_team_20_regular', color: '#673AB7', isLocalClassroom: true },
-  { id: 'classmeeting', name: 'Class Meeting', simplifiedName: 'Meeting', icon: 'ic_fluent_chat_20_regular', color: '#3F51B5', isLocalClassroom: true },
-  { id: 'weeklytest', name: 'Weekly Test', simplifiedName: 'Test', icon: 'ic_fluent_clipboard_20_regular', color: '#FF5722', isLocalClassroom: true },
+  { id: 'chinese', name: '语文', simplifiedName: '语', icon: 'ic_fluent_book_20_regular', color: '#FF5722', isLocalClassroom: true },
+  { id: 'math', name: '数学', simplifiedName: '数', icon: 'ic_fluent_ruler_20_regular', color: '#3F51B5', isLocalClassroom: true },
+  { id: 'english', name: '英语', simplifiedName: '英', icon: 'ic_fluent_text_list_abc_uppercase_ltr_20_filled', color: '#2196F3', isLocalClassroom: true },
+  { id: 'politics', name: '政治', simplifiedName: '政', icon: 'ic_fluent_book_globe_20_regular', color: '#9C27B0', isLocalClassroom: true },
+  { id: 'history', name: '历史', simplifiedName: '史', icon: 'ic_fluent_clock_20_regular', color: '#795548', isLocalClassroom: true },
+  { id: 'physics', name: '物理', simplifiedName: '物', icon: 'ic_fluent_lightbulb_filament_20_regular', color: '#00BCD4', isLocalClassroom: true },
+  { id: 'chemistry', name: '化学', simplifiedName: '化', icon: 'ic_fluent_hexagon_three_20_regular', color: '#4CAF50', isLocalClassroom: true },
+  { id: 'biology', name: '生物', simplifiedName: '生', icon: 'ic_fluent_leaf_three_20_regular', color: '#8BC34A', isLocalClassroom: true },
+  { id: 'geography', name: '地理', simplifiedName: '地', icon: 'ic_fluent_earth_20_regular', color: '#009688', isLocalClassroom: true },
+  { id: 'music', name: '音乐', simplifiedName: '音', icon: 'ic_fluent_music_note_2_20_regular', color: '#E91E63', isLocalClassroom: true },
+  { id: 'art', name: '美术', simplifiedName: '美', icon: 'ic_fluent_draw_shape_20_regular', color: '#F44336', isLocalClassroom: true },
+  { id: 'psychology', name: '心理', simplifiedName: '心', icon: 'ic_fluent_brain_sparkle_20_regular', color: '#FF9800', isLocalClassroom: true },
+  { id: 'pe', name: '体育', simplifiedName: '体', icon: 'ic_fluent_person_running_20_regular', color: '#CDDC39', isLocalClassroom: false },
+  { id: 'it', name: '信息技术', simplifiedName: '信', icon: 'ic_fluent_laptop_20_regular', color: '#607D8B', isLocalClassroom: true },
+  { id: 'generaltech', name: '通用技术', simplifiedName: '通', icon: 'ic_fluent_wrench_settings_20_regular', color: '#FF9800', isLocalClassroom: true },
+  { id: 'elective', name: '选修', simplifiedName: '选', icon: 'ic_fluent_sign_out_20_regular', color: '#9E9E9E', isLocalClassroom: false },
+  { id: 'selfstudy', name: '自学', simplifiedName: '自', icon: 'ic_fluent_notebook_20_regular', color: '#607D8B', isLocalClassroom: true },
+  { id: 'club', name: '社团', simplifiedName: '社', icon: 'ic_fluent_people_team_20_regular', color: '#673AB7', isLocalClassroom: true },
+  { id: 'classmeeting', name: '班会', simplifiedName: '会', icon: 'ic_fluent_chat_20_regular', color: '#3F51B5', isLocalClassroom: true },
+  { id: 'weeklytest', name: '周测', simplifiedName: '测', icon: 'ic_fluent_clipboard_20_regular', color: '#FF5722', isLocalClassroom: true },
 ]
 
 function emptySchedule(): Schedule {
@@ -51,12 +51,23 @@ function emptySchedule(): Schedule {
 }
 
 function normalizeSchedule(schedule: Schedule): Schedule {
+  const overrideSubjectEntryIds = new Set(
+    (schedule.overrides ?? [])
+      .filter((override) => Boolean(override.subjectId))
+      .map((override) => override.entryId),
+  )
   return {
     ...schedule,
     subjects: schedule.subjects?.length ? schedule.subjects : structuredClone(DEFAULT_SUBJECTS),
     days: (schedule.days ?? []).map((day) => ({
       ...day,
-      entries: day.entries.map((entry) => ({ ...entry, title: entry.title?.trim() || crypto.randomUUID() })),
+      entries: day.entries.map((entry) => ({
+        ...entry,
+        subjectId: entry.subjectId?.trim() || undefined,
+        title: overrideSubjectEntryIds.has(entry.id)
+          ? entry.title?.trim() || '0'
+          : entry.title?.trim() || (entry.subjectId ? undefined : crypto.randomUUID()),
+      })),
     })),
     overrides: schedule.overrides ?? [],
   }
