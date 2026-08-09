@@ -1,0 +1,14 @@
+:root {
+  font-family: var(--fontFamilyBase), "Segoe UI", "Microsoft YaHei UI", sans-serif;
+  color: var(--colorNeutralForeground1);
+  background: var(--colorNeutralBackground2);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  letter-spacing: 0;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { min-width: 320px; min-height: 100%; margin: 0; }
+button, input, select, textarea { font: inherit; letter-spacing: 0; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: .55; }
