@@ -193,7 +193,8 @@ legend { margin-bottom: 8px; color: var(--colorNeutralForeground2); font-size: 1
 .log-line pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; }
 .schedule-workspace, .config-workspace { display: grid; grid-template-columns: 240px minmax(620px, 1fr); align-items: start; gap: 18px; }
 .resource-sidebar { margin-top: 0; }
-.resource-sidebar .section-heading button, .pane-heading button, .editor-commandbar > button { display: inline-flex; align-items: center; gap: 5px; min-height: 32px; padding: 0 9px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); color: var(--text); }
+.resource-sidebar .section-heading button, .pane-heading button, .editor-commandbar > button, .editor-commandbar > .import-button { display: inline-flex; align-items: center; gap: 5px; min-height: 32px; padding: 0 9px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); color: var(--text); cursor: pointer; }
+.import-button input[type="file"] { display: none; }
 .resource-nav { display: grid; }
 .resource-nav article { display: grid; grid-template-columns: 1fr 36px; border-bottom: 1px solid var(--border); }
 .resource-nav article.selected { background: var(--accent-soft); box-shadow: inset 3px 0 var(--accent); }

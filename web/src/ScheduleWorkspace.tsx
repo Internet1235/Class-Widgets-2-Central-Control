@@ -3,6 +3,7 @@ import {
   Add24Regular,
   Copy24Regular,
   Delete24Regular,
+  ArrowUpload24Regular,
   Save24Regular,
   Send24Regular,
 } from '@fluentui/react-icons'
@@ -89,6 +90,25 @@ export function ScheduleWorkspace({ organizationId, groups, onComplete }: Props)
 
   function reset() { setEditingId(null); setName('新课表'); setSchedule(emptySchedule()); setPublishGroups([]); setTab('timeline') }
   function edit(record: ScheduleRecord) { setEditingId(record.id); setName(record.name); setSchedule(normalizeSchedule(structuredClone(record.schedule) as unknown as Schedule)); setPublishGroups(record.group_ids); setTab('timeline') }
+  async function importSchedule(file: File | undefined) {
+    if (!file) return
+    try {
+      const imported = JSON.parse(await file.text()) as Record<string, unknown>
+      const candidate = ('schedule' in imported ? imported.schedule : imported) as Partial<Schedule>
+      if (!candidate.meta || !Array.isArray(candidate.subjects) || !Array.isArray(candidate.days) || !Array.isArray(candidate.overrides)) {
+        throw new Error('文件不是有效的 Class Widgets 2 课表')
+      }
+      const normalized = normalizeSchedule(structuredClone(candidate) as Schedule)
+      setEditingId(null)
+      setName(file.name.replace(/\.json$/i, '') || '导入的课表')
+      setSchedule(normalized)
+      setPublishGroups([])
+      setTab('timeline')
+      onComplete(`已导入课表“${file.name}”，保存后生效`)
+    } catch (error) {
+      onComplete(error instanceof Error ? error.message : '课表导入失败', 'error')
+    }
+  }
   async function save() {
     try {
       const result = editingId
@@ -121,7 +141,7 @@ export function ScheduleWorkspace({ organizationId, groups, onComplete }: Props)
       <div className="resource-nav">{records.map((record) => <article className={editingId === record.id ? 'selected' : ''} key={record.id}><button className="resource-main" onClick={() => edit(record)}><strong>{record.name}</strong><span>r{record.revision} · {record.group_ids.length ? `${record.group_ids.length} 个分组` : '草稿'}</span></button><button title="克隆" onClick={() => void clone(record)}><Copy24Regular /></button></article>)}</div>
     </section>
     <section className="schedule-editor form-section">
-      <div className="editor-commandbar"><div><input aria-label="课表名称" value={name} onChange={(event) => setName(event.target.value)} /><span>{editingId ? '编辑现有课表；保存时创建新修订' : '尚未保存的课表'}</span></div><button onClick={() => void save()}><Save24Regular />仅保存</button><button className="primary" disabled={!publishGroups.length} onClick={() => void saveAndPublish()}><Send24Regular />保存并发布</button></div>
+      <div className="editor-commandbar"><div><input aria-label="课表名称" value={name} onChange={(event) => setName(event.target.value)} /><span>{editingId ? '编辑现有课表；保存时创建新修订' : '尚未保存的课表'}</span></div><label className="import-button"><ArrowUpload24Regular />导入 JSON<input type="file" accept="application/json,.json" onChange={(event) => { void importSchedule(event.target.files?.[0]); event.target.value = '' }} /></label><button onClick={() => void save()}><Save24Regular />仅保存</button><button className="primary" disabled={!publishGroups.length} onClick={() => void saveAndPublish()}><Send24Regular />保存并发布</button></div>
       <div className="meta-strip"><label>开学日期<input type="date" value={schedule.meta.startDate} onChange={(event) => setSchedule({ ...schedule, meta: { ...schedule.meta, startDate: event.target.value } })} /></label><label>最大周循环<input type="number" min={1} max={52} value={schedule.meta.maxWeekCycle} onChange={(event) => setSchedule({ ...schedule, meta: { ...schedule.meta, maxWeekCycle: Number(event.target.value) } })} /></label><fieldset><legend>发布目标</legend>{checks(groups, publishGroups, setPublishGroups)}</fieldset></div>
       <div className="editor-tabs"><button className={tab === 'timeline' ? 'active' : ''} onClick={() => setTab('timeline')}>1. 时间线</button><button className={tab === 'schedule' ? 'active' : ''} onClick={() => setTab('schedule')}>2. 课表</button><button className={tab === 'subjects' ? 'active' : ''} onClick={() => setTab('subjects')}>3. 科目</button></div>
       {tab === 'timeline' && <TimelineEditor schedule={schedule} setSchedule={setSchedule} />}
