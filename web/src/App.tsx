@@ -13,7 +13,6 @@ import {
   Navigation24Regular,
   Organization24Regular,
   PeopleTeam24Regular,
-  Settings24Regular,
   ShieldLock24Regular,
   WeatherMoon24Regular,
 } from '@fluentui/react-icons'
@@ -21,6 +20,7 @@ import { Button, Select, Tab, TabList } from '@fluentui/react-components'
 import { api, getAdminKey, getSessionToken, setAdminKey, setSessionToken, type AdminUser, type CommandRecord, type Device, type DiagnosticDetail, type Group, type Organization, type Principal } from './api'
 import { ScheduleWorkspace } from './ScheduleWorkspace'
 import { ConfigWorkspace } from './ConfigWorkspace'
+import centralControlIcon from './assets/cw2-jikong.png'
 type ThemeMode = 'system' | 'light' | 'dark'
 import './App.css'
 
@@ -148,7 +148,7 @@ function App({ themeMode, onThemeModeChange }: { themeMode: ThemeMode; onThemeMo
 
   return <div className="app-shell">
     <aside className={mobileNav ? 'sidebar open' : 'sidebar'}>
-      <div className="brand"><div className="brand-mark"><Settings24Regular /></div><div><strong>集控</strong><span>Class Widgets</span></div></div>
+      <div className="brand"><div className="brand-mark"><img src={centralControlIcon} alt="集控" /></div><div><strong>集控</strong><span>Class Widgets</span></div></div>
       <TabList className="nav-list" vertical selectedValue={view} onTabSelect={(_, data) => { setView(data.value as View); setMobileNav(false) }} aria-label="主导航">{navItems.map((item) => { const Icon = item.icon; return <Tab key={item.id} value={item.id} icon={<Icon />}>{item.label}</Tab> })}</TabList>
       <div className="sidebar-footer"><span className={connected ? 'status-dot online' : 'status-dot'} /><span>{connected ? '服务已连接' : '服务未连接'}</span></div>
     </aside>

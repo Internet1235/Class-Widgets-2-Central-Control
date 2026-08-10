@@ -31,6 +31,7 @@
 .sidebar { position: fixed; inset: 0 auto 0 0; width: 248px; z-index: 20; display: flex; flex-direction: column; padding: 16px 12px; color: var(--sidebar-text); background: var(--sidebar); border-right: 1px solid var(--sidebar-border); box-shadow: var(--shadow2); }
 .brand { display: flex; align-items: center; gap: 11px; height: 52px; padding: 0 8px 16px; margin-bottom: 12px; border-bottom: 1px solid var(--sidebar-border); }
 .brand-mark { display: grid; place-items: center; width: 36px; height: 36px; border-radius: var(--borderRadiusMedium); color: var(--accent-foreground); background: var(--accent); box-shadow: var(--shadow4); }
+.brand-mark img { display: block; width: 100%; height: 100%; border-radius: inherit; object-fit: contain; }
 .brand strong, .brand span { display: block; }
 .brand strong { color: var(--sidebar-brand); font-size: 17px; }
 .brand span { color: var(--sidebar-muted); font-size: 11px; margin-top: 2px; }
