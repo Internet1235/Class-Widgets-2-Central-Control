@@ -184,5 +184,6 @@ export const api = {
   assignSchedule: (id: string, groupIds: string[]) => put(`/schedules/${id}/groups`, { group_ids: groupIds }),
   assignPolicy: (id: string, groupIds: string[]) => put(`/policies/${id}/groups`, { group_ids: groupIds }),
   moveDevice: (id: string, groupId: string) => patch(`/devices/${id}/group`, { group_id: groupId }),
+  deleteDevice: (id: string) => request<void>(`/devices/${id}`, { method: 'DELETE' }),
   createCommand: (body: JsonBody) => post<{ id: string; cursor: number }>('/commands', body),
 }

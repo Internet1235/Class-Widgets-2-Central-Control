@@ -160,6 +160,24 @@ def move_device(
     return {"id": device.id, "group_id": group.id, "group_name": group.name}
 
 
+@router.delete("/devices/{device_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_device(
+    device_id: str,
+    db: Annotated[Session, Depends(get_db)],
+    principal: Annotated[dict, Depends(require_admin)],
+) -> None:
+    """撤销并删除设备，使其安装实例可以重新配对。"""
+    device = _require_device_access(device_id, principal, db)
+    db.query(CommandAcknowledgement).filter(
+        CommandAcknowledgement.device_id == device.id
+    ).delete(synchronize_session=False)
+    db.query(DiagnosticReport).filter(
+        DiagnosticReport.device_id == device.id
+    ).delete(synchronize_session=False)
+    db.delete(device)
+    db.commit()
+
+
 @router.post("/groups/{group_id}/pairing-codes", status_code=status.HTTP_201_CREATED)
 def create_pairing_code(
     group_id: str,
