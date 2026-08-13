@@ -273,6 +273,7 @@ class CommandCreate(BaseModel):
         "restart_app",
         "upload_diagnostics",
         "show_notification",
+        "trigger_action",
     ]
     group_id: str | None = None
     device_id: str | None = None
@@ -284,6 +285,11 @@ class CommandCreate(BaseModel):
     def validate_target(self) -> CommandCreate:
         if bool(self.group_id) == bool(self.device_id):
             raise ValueError("exactly one of group_id or device_id is required")
+        if self.type == "trigger_action":
+            action_id = self.payload.get("action_id")
+            if not isinstance(action_id, str) or not action_id.strip() or len(action_id) > 240:
+                raise ValueError("trigger_action requires a non-empty action_id up to 240 characters")
+            self.payload["action_id"] = action_id.strip()
         return self
 
 

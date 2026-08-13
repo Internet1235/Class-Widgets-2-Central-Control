@@ -175,6 +175,31 @@ def test_policy_accepts_all_valid_config_paths(client, admin_headers):
     assert response.status_code == 201
 
 
+def test_action_command_requires_action_id(client, admin_headers):
+    _, group, _ = bootstrap(client, admin_headers)
+    accepted = client.post(
+        "/api/v1/admin/commands",
+        headers=admin_headers,
+        json={
+            "type": "trigger_action",
+            "group_id": group["id"],
+            "payload": {"action_id": "com.hpdnya.ea2c.convert_today"},
+        },
+    )
+    assert accepted.status_code == 201
+
+    rejected = client.post(
+        "/api/v1/admin/commands",
+        headers=admin_headers,
+        json={
+            "type": "trigger_action",
+            "group_id": group["id"],
+            "payload": {"action_id": ""},
+        },
+    )
+    assert rejected.status_code == 422
+
+
 def test_device_cannot_acknowledge_another_devices_command(client, admin_headers):
     _, group, first_code = bootstrap(client, admin_headers)
     first = pair(client, first_code).json()
