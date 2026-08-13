@@ -1,7 +1,10 @@
 import asyncio
 from contextlib import asynccontextmanager
 
+from pathlib import Path
+
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
 from .routers import admin, auth, automation, device
 from .services.automation import worker
@@ -34,3 +37,8 @@ app.include_router(automation.router, prefix="/api/v1/admin/automations")
 @app.get("/api/v1/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+frontend_dist = Path(__file__).resolve().parents[1] / "frontend-dist"
+if frontend_dist.is_dir():
+    app.mount("/", StaticFiles(directory=frontend_dist, html=True), name="frontend")
