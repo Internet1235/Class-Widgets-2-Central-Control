@@ -60,6 +60,25 @@ export type PolicyRecord = {
   created_at: string
 }
 
+export type AutomationRule = {
+  id: string
+  organization_id: string
+  name: string
+  enabled: boolean
+  trigger_type: 'daily' | 'weekly' | 'date' | 'online'
+  scheduled_time: string | null
+  weekdays: number[]
+  run_date: string | null
+  condition_operator: 'and' | 'or'
+  conditions: Array<{ type: 'online' | 'status'; value?: string }>
+  delay_seconds: number
+  group_id: string | null
+  device_id: string | null
+  action: { type: 'command' | 'config' | 'schedule'; payload: Record<string, unknown> }
+  created_at: string
+  updated_at: string
+}
+
 export type DiagnosticSummary = {
   id: string
   device_id: string
@@ -185,5 +204,11 @@ export const api = {
   assignPolicy: (id: string, groupIds: string[]) => put(`/policies/${id}/groups`, { group_ids: groupIds }),
   moveDevice: (id: string, groupId: string) => patch(`/devices/${id}/group`, { group_id: groupId }),
   deleteDevice: (id: string) => request<void>(`/devices/${id}`, { method: 'DELETE' }),
+  automations: (organizationId: string) => request<AutomationRule[]>(`/automations?organization_id=${encodeURIComponent(organizationId)}`),
+  createAutomation: (body: JsonBody) => post<AutomationRule>('/automations', body),
+  updateAutomation: (id: string, body: JsonBody) => request<AutomationRule>(`/automations/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+  deleteAutomation: (id: string) => request<void>(`/automations/${id}`, { method: 'DELETE' }),
+  setAutomationEnabled: (id: string, enabled: boolean) => request<AutomationRule>(`/automations/${id}/enabled?enabled=${enabled}`, { method: 'PATCH' }),
+  automationRuns: (id: string) => request<Array<{ id: string; device_id: string; status: string; reason: string; command_id: string | null; finished_at: string | null }>>(`/automations/${id}/runs`),
   createCommand: (body: JsonBody) => post<{ id: string; cursor: number }>('/commands', body),
 }

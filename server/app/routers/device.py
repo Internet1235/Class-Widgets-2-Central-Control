@@ -1,6 +1,7 @@
 from datetime import UTC
 from hashlib import sha256
 from typing import Annotated
+from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import or_, select, update
@@ -77,6 +78,10 @@ def pair_device(
     device.app_version = payload.app_version
     device.plugin_version = payload.plugin_version
     device.platform = payload.platform
+    if device.last_seen is None or (
+        now - as_aware(device.last_seen)
+    ).total_seconds() > settings.device_online_timeout_seconds:
+        device.online_session_id = str(uuid4())
     device.last_seen = now
     consumed = db.execute(
         update(PairingCode)

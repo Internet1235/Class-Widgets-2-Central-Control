@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     admin_key: str = Field(default="development-only-change-me", min_length=16)
     allow_insecure_http: bool = True
     poll_interval_seconds: int = Field(default=10, ge=5, le=300)
+    device_online_timeout_seconds: int = Field(default=45, ge=15, le=3600)
+    automation_poll_interval_seconds: int = Field(default=2, ge=1, le=60)
 
 
 @lru_cache

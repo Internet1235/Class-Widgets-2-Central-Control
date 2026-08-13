@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from typing import Any
 from uuid import uuid4
 
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import JSON, Boolean, Date, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import Base
@@ -93,10 +93,53 @@ class Device(Base):
     last_cursor: Mapped[int] = mapped_column(Integer, default=0)
     last_error: Mapped[str] = mapped_column(Text, default="")
     last_seen: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    online_session_id: Mapped[str] = mapped_column(String(36), default=new_id)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
     group: Mapped[DeviceGroup] = relationship(back_populates="devices")
     acknowledgements: Mapped[list[CommandAcknowledgement]] = relationship(back_populates="device")
+
+
+class AutomationRule(Base):
+    __tablename__ = "automation_rules"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    organization_id: Mapped[str] = mapped_column(ForeignKey("organizations.id"), index=True)
+    name: Mapped[str] = mapped_column(String(120))
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    trigger_type: Mapped[str] = mapped_column(String(20))
+    scheduled_time: Mapped[str | None] = mapped_column(String(5), nullable=True)
+    weekdays: Mapped[list[int]] = mapped_column(JSON, default=list)
+    run_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    condition_operator: Mapped[str] = mapped_column(String(3), default="and")
+    conditions: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list)
+    condition_type: Mapped[str] = mapped_column(String(20), default="always")
+    condition_value: Mapped[str] = mapped_column(String(80), default="")
+    delay_seconds: Mapped[int] = mapped_column(Integer, default=0)
+    group_id: Mapped[str | None] = mapped_column(ForeignKey("device_groups.id"), nullable=True)
+    device_id: Mapped[str | None] = mapped_column(ForeignKey("devices.id"), nullable=True)
+    action_type: Mapped[str] = mapped_column(String(20))
+    action_payload: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class AutomationRun(Base):
+    __tablename__ = "automation_runs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    rule_id: Mapped[str] = mapped_column(ForeignKey("automation_rules.id"), index=True)
+    device_id: Mapped[str] = mapped_column(ForeignKey("devices.id"), index=True)
+    scheduled_for: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    session_key: Mapped[str] = mapped_column(String(120), default="")
+    execute_after: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    status: Mapped[str] = mapped_column(String(20), default="pending", index=True)
+    reason: Mapped[str] = mapped_column(String(500), default="")
+    command_id: Mapped[str | None] = mapped_column(ForeignKey("commands.id"), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    __table_args__ = (UniqueConstraint("rule_id", "device_id", "session_key"),)
 
 
 class ScheduleRevision(Base):

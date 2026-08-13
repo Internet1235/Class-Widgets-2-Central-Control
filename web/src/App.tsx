@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import {
   Add24Regular,
   AppsListDetail24Regular,
+  ArrowRepeatAll24Regular,
   ArrowClockwise24Regular,
   CalendarLtr24Regular,
   CheckmarkCircle20Filled,
@@ -21,11 +22,12 @@ import { Button, Select, Tab, TabList } from '@fluentui/react-components'
 import { api, getAdminKey, getSessionToken, setAdminKey, setSessionToken, type AdminUser, type CommandRecord, type Device, type DiagnosticDetail, type Group, type Organization, type Principal } from './api'
 import { ScheduleWorkspace } from './ScheduleWorkspace'
 import { ConfigWorkspace } from './ConfigWorkspace'
+import { AutomationWorkspace } from './AutomationWorkspace'
 import centralControlIcon from './assets/cw2-jikong.png'
 type ThemeMode = 'system' | 'light' | 'dark'
 import './App.css'
 
-type View = 'overview' | 'devices' | 'groups' | 'schedule' | 'policy' | 'commands' | 'logs' | 'tenants'
+type View = 'overview' | 'devices' | 'groups' | 'schedule' | 'policy' | 'commands' | 'automation' | 'logs' | 'tenants'
 type Notice = { tone: 'success' | 'error'; message: string } | null
 
 const NAV_ITEMS: Array<{ id: View; label: string; icon: typeof Desktop24Regular }> = [
@@ -35,6 +37,7 @@ const NAV_ITEMS: Array<{ id: View; label: string; icon: typeof Desktop24Regular 
   { id: 'schedule', label: '课表发布', icon: CalendarLtr24Regular },
   { id: 'policy', label: '策略', icon: ShieldLock24Regular },
   { id: 'commands', label: '命令', icon: Code24Regular },
+  { id: 'automation', label: '自动化', icon: ArrowRepeatAll24Regular },
   { id: 'logs', label: '客户端日志', icon: DocumentBulletList24Regular },
 ]
 
@@ -45,6 +48,7 @@ const VIEW_TITLES: Record<View, [string, string]> = {
   schedule: ['课表发布', '校验并向选定分组发布课表'],
   policy: ['策略', '统一锁定终端的受管设置'],
   commands: ['命令', '向分组或单台设备下发受限操作'],
+  automation: ['自动化', '按服务器时间和设备条件自动执行动作'],
   logs: ['客户端日志', '查看终端动态上报的诊断与日志'],
   tenants: ['租户管理', '创建租户账号并配置可访问的组织范围'],
 }
@@ -170,6 +174,7 @@ function App({ themeMode, onThemeModeChange }: { themeMode: ThemeMode; onThemeMo
         {view === 'schedule' && <ScheduleWorkspace organizationId={organizationId} groups={groups} onComplete={complete} />}
         {view === 'policy' && <ConfigWorkspace organizationId={organizationId} groups={groups} onComplete={complete} />}
         {view === 'commands' && <CommandsView organizationId={organizationId} groups={groups} devices={devices} onComplete={complete} />}
+        {view === 'automation' && <AutomationWorkspace organizationId={organizationId} groups={groups} devices={devices} onComplete={complete} />}
         {view === 'logs' && <LogsView organizationId={organizationId} />}
         {view === 'tenants' && principal?.platform_admin && <TenantManagement organizations={organizations} onComplete={complete} />}
       </div>

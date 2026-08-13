@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime, time
 from enum import StrEnum
 from typing import Annotated, Any, Literal
 from uuid import uuid4
@@ -274,6 +274,8 @@ class CommandCreate(BaseModel):
         "upload_diagnostics",
         "show_notification",
         "trigger_action",
+        "apply_config",
+        "switch_schedule",
     ]
     group_id: str | None = None
     device_id: str | None = None
@@ -290,7 +292,101 @@ class CommandCreate(BaseModel):
             if not isinstance(action_id, str) or not action_id.strip() or len(action_id) > 240:
                 raise ValueError("trigger_action requires a non-empty action_id up to 240 characters")
             self.payload["action_id"] = action_id.strip()
+        if self.type == "switch_schedule":
+            name = self.payload.get("name")
+            if not isinstance(name, str) or not name.strip():
+                raise ValueError("switch_schedule requires name")
+            self.payload["name"] = name.strip()
+        if self.type == "apply_config":
+            overrides = self.payload.get("overrides")
+            if not isinstance(overrides, dict) or not overrides:
+                raise ValueError("apply_config requires non-empty overrides")
         return self
+
+
+class AutomationAction(BaseModel):
+    type: Literal["command", "config", "schedule"]
+    payload: dict[str, Any] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def validate_action(self) -> AutomationAction:
+        if self.type == "command":
+            command_type = self.payload.get("command_type")
+            if command_type not in {
+                "refresh_status", "restart_app", "upload_diagnostics",
+                "show_notification", "trigger_action", "apply_config",
+                "switch_schedule",
+            }:
+                raise ValueError("invalid automation command_type")
+            if command_type == "trigger_action":
+                action_id = self.payload.get("action_id")
+                if not isinstance(action_id, str) or not action_id.strip():
+                    raise ValueError("trigger_action requires action_id")
+                self.payload["action_id"] = action_id.strip()
+        elif self.type == "config":
+            policy_id = self.payload.get("policy_id")
+            if not isinstance(policy_id, str) or not policy_id.strip():
+                raise ValueError("config action requires policy_id")
+            self.payload["policy_id"] = policy_id.strip()
+        elif self.type == "schedule":
+            schedule_id = self.payload.get("schedule_id")
+            if not isinstance(schedule_id, str) or not schedule_id.strip():
+                raise ValueError("schedule action requires schedule_id")
+            self.payload["schedule_id"] = schedule_id.strip()
+        return self
+
+
+class AutomationRuleCreate(BaseModel):
+    organization_id: str
+    name: str = Field(min_length=1, max_length=120)
+    enabled: bool = True
+    trigger_type: Literal["daily", "weekly", "date", "online"]
+    scheduled_time: time | None = None
+    weekdays: list[int] = Field(default_factory=list)
+    run_date: date | None = None
+    condition_operator: Literal["and", "or"] = "and"
+    conditions: list[dict[str, Any]] = Field(default_factory=list)
+    delay_seconds: int = Field(default=0, ge=0, le=86400)
+    group_id: str | None = None
+    device_id: str | None = None
+    action: AutomationAction
+
+    @model_validator(mode="after")
+    def validate_rule(self) -> AutomationRuleCreate:
+        if bool(self.group_id) == bool(self.device_id):
+            raise ValueError("exactly one of group_id or device_id is required")
+        if self.trigger_type in {"daily", "weekly", "date"} and self.scheduled_time is None:
+            raise ValueError("scheduled_time is required for scheduled rules")
+        if self.trigger_type == "weekly" and not self.weekdays:
+            raise ValueError("weekly rules require weekdays")
+        if any(day < 1 or day > 7 for day in self.weekdays):
+            raise ValueError("weekdays must be between 1 and 7")
+        if self.trigger_type == "date" and self.run_date is None:
+            raise ValueError("date rules require run_date")
+        if self.trigger_type != "date" and self.run_date is not None:
+            raise ValueError("run_date is only valid for date rules")
+        for condition in self.conditions:
+            condition_type = condition.get("type")
+            if condition_type not in {"online", "status"}:
+                raise ValueError("condition type must be online or status")
+            if condition_type == "status" and not str(condition.get("value", "")).strip():
+                raise ValueError("status condition requires value")
+        return self
+
+
+class AutomationRuleUpdate(AutomationRuleCreate):
+    pass
+
+
+class AutomationRunResponse(BaseModel):
+    id: str
+    device_id: str
+    scheduled_for: datetime
+    execute_after: datetime
+    status: str
+    reason: str
+    command_id: str | None
+    finished_at: datetime | None
 
 
 class ModelResponse(BaseModel):
